@@ -1,0 +1,134 @@
+class Vector3
+{
+    x = 0;
+    y = 0;
+    z = 0;
+
+    constructor(x, y, z)
+    {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+    }
+
+    getX()
+    {
+        return this.x;
+    }
+
+    getY()
+    {
+        return this.y;
+    }
+
+    getZ()
+    {
+        return this.z;
+    }
+
+    getFloorX()
+    {
+        return Math.floor(this.getX());
+    }
+
+    getFloorY()
+    {
+        return Math.floor(this.getY());
+    }
+
+    getFloorZ()
+    {
+        return Math.floor(this.getZ());
+    }
+
+    add(vector)
+    {
+        return new Vector3(this.getX() + vector.getX(), this.getY() + vector.getY(), this.getZ() + vector.getZ());
+    }
+
+    addVector(vector)
+    {
+        return this.add(vector.getX(), vector.getY(), vector.getZ());
+    }
+
+    subtract(x, y, z)
+    {
+        return this.add(-x, -y, -z);
+    }
+
+    subtractVector(vector)
+    {
+        return this.subtract(-vector.getX(), -vector.getY(), -vector.getZ());
+    }
+
+    multiply(number)
+    {
+        return new Vector3(this.getX() * number, this.getY() * number, this.getZ() * number);
+    }
+
+    divide(number)
+    {
+        return new Vector3(this.getX() / number, this.getY() / number, this.getZ() / number);
+    }
+
+    ceil()
+    {
+        return new Vector3(Math.ceil(this.getX()), Math.ceil(this.getY()), Math.ceil(this.getZ()));
+    }
+
+    floor()
+    {
+        return new Vector3(Math.floor(this.getX()), Math.floor(this.getY()), Math.floor(this.getZ()));
+    }
+
+    round()
+    {
+        return new Vector3(Math.round(this.getX()), Math.round(this.getY()), Math.round(this.getZ()));
+    }
+
+    abs()
+    {
+        return new Vector3(Math.abs(this.getX()), Math.abs(this.getY()), Math.abs(this.getZ()));
+    }
+
+    asObject()
+    {
+        return {x: this.getX(), y: this.getY(), z: this.getZ()};
+    }
+
+    asFloorObject()
+    {
+        return {x: this.getFloorX(), y: this.getFloorY(), z: this.getFloorZ()};
+    }
+
+    distance(vector)
+    {
+        return Math.sqrt(this.distanceSquared(vector));
+    }
+
+    distanceSquared(vector)
+    {
+        return ((this.getX() - vector.getX()) ** 2)  + ((this.getY() - vector.getY()) ** 2) + ((this.getZ() - vector.getZ()) ** 2);
+    }
+
+    length()
+    {
+        return Math.sqrt(this.lengthSquared());
+    }
+
+    lengthSquared()
+    {
+        return (this.getX() ** 2) + (this.getY() ** 2) + (this.getZ() ** 2);
+    }
+
+    normalize(vector)
+    {
+        let len = this.lengthSquared(vector);
+        if(len > 0){
+            return this.divide(vector, Math.sqrt(len));
+        }
+
+        return new Vector3(0, 0, 0);
+    }
+}
+module.exports = Vector3;
