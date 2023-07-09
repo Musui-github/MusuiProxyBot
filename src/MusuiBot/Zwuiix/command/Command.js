@@ -77,7 +77,7 @@ class Command
     onPreRun(client, args)
     {
         if(this.args.size != args.length) {
-            client.sendMessage("§mI'm sorry, you've sent the wrong message.", false);
+            client.sendMessage("§cI'm sorry, you've sent the wrong message.", false);
             return;
         }
 

@@ -13,7 +13,7 @@ class CorrectlyMoveHandler
         client.getNetworkSession().getClient().on('serverbound', (pk) => {
             switch (pk.name) {
                 case "player_auth_input":
-                    if(client.hasTarget()) {
+                    if(client.hasTarget() && client.getCanTarget()) {
                         if(!client.getWorld().getPlayersEntities().has(client.getCurrentTarget())) {
                             client.setCurrentTarget(-1);
                         } else {
@@ -55,7 +55,7 @@ class CorrectlyMoveHandler
                                 let x = currentTarget.getPosition().getX() - client.getPosition().getX();
                                 let y = currentTarget.getPosition().getY() - client.getPosition().getY();
                                 let z = currentTarget.getPosition().getZ() - client.getPosition().getZ();
-                                
+
                                 let diff = Math.abs(x) + Math.abs(z);
 
                                 if (x ** 2 + z ** 2 < 0.7) {

@@ -19,7 +19,7 @@ class TargetCommand extends Command
         let targetName = args.get("target");
 
         if(targetName.toLowerCase() === "off" || targetName.toLowerCase() === "stop" || targetName.toLowerCase() === "none" || targetName.toLowerCase === "null") {
-            player.disableTargeting();
+            player.setTargeting(false);
             player.setCurrentTarget(-1);
             player.sendMessage("§6» §fSuccessfully disabled targeting !", false);
             return;
@@ -32,7 +32,7 @@ class TargetCommand extends Command
         }
 
         player.sendMessage(`§6» §fYou are now targeting §e${target.getName()} §f!`, false);
-        player.enableTargeting();
+        player.setTargeting(true);
         player.setCurrentTarget(target.getRuntimeId());
     }
 }

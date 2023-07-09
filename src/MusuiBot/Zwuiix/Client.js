@@ -165,14 +165,9 @@ class Client
         return this.canTarget;
     }
 
-    enableTargeting()
+    setTargeting(value)
     {
-        this.canTarget = true;
-    }
-
-    disableTargeting()
-    {
-        this.canTarget = false;
+        this.canTarget = value;
     }
 
     getPitch()
