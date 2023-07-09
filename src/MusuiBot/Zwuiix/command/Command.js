@@ -51,8 +51,8 @@ class Command
             defaultOverload.push({
                 parameter_name: `${argument.getName()}`,
                 value_type: `${argument.getTypeName()}`,
-                enum_type: "enum",
-                optional: true,
+                enum_type: "valid",
+                optional: argument.isOptional(),
                 options: {
                     unused: 0,
                     collapse_enum: 0,
@@ -77,7 +77,7 @@ class Command
     onPreRun(client, args)
     {
         if(this.args.size != args.length) {
-            client.sendMessage("§mI'm sorry, you've sent the wrong message.");
+            client.sendMessage("§mI'm sorry, you've sent the wrong message.", false);
             return;
         }
 
@@ -93,6 +93,7 @@ class Command
                 case "float":
                     newArgs.set(arg.name, parseFloat(value));
                     break;
+                case "target":
                 case "string":
                     newArgs.set(arg.name, `${value}`);
                     break;

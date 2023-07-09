@@ -18,12 +18,14 @@ class World
 
     getPlayerByName(name)
     {
-        this.playersEntities.forEach((entityId, player) => {
-            if(player.getName().toLowerCase() === name.toLowerCase())
-                return player;
+        let response = null;
+        this.getPlayersEntities().forEach((player, entityId) => {
+            if(player.getName().toLowerCase() === name.toLowerCase()) {
+                response = player;
+            }
         });
 
-        return null;
+        return response;
     }
 
     getChunkData()

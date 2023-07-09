@@ -2,6 +2,7 @@ const {Vector3, fromObject} = require("../utils/math/Vector3");
 const Vector2 = require("../utils/math/Vector2");
 const PlayerAuthInputPacket = require('../network/packet/PlayerAuthInputPacket');
 const MovePlayerPacket = require('../network/packet/MovePlayerPacket');
+const PlayerEntity = require("../entity/PlayerEntity");
 
 class CorrectlyMoveHandler
 {
@@ -12,10 +13,13 @@ class CorrectlyMoveHandler
             switch (pk.name) {
                 case "player_auth_input":
                     if(client.hasTarget() && client.getCanTarget()) {
-                        if(!client.getWorld().getEntityLocations().has(client.getCurrentTarget())) {
+                        if(!client.getWorld().getPlayersEntities().has(client.getCurrentTarget())) {
                             client.setCurrentTarget(-1);
                         } else {
-                            client.setPosition(client.getWorld().getEntityLocations().get(client.getCurrentTarget()));
+                            let currentTarget = client.getWorld().getPlayersEntities().get(client.getCurrentTarget());
+                            if (!currentTarget instanceof PlayerEntity) return;
+
+                            //client.setPosition(currentTarget.getPosition());
                             client.getNetworkSession().sendClientBoundDataPacket(new MovePlayerPacket(
                                 Number(client.getId()),
                                 client.getPosition().asObject(),
@@ -28,7 +32,9 @@ class CorrectlyMoveHandler
                                 "unknown",
                                 32767
                             ));
-                            client.attackEntityWithId(client.getCurrentTarget());
+                            if(client.canReachAttack(currentTarget)) {
+                                client.attackEntity(currentTarget);
+                            }
 
                             let packet = new PlayerAuthInputPacket(
                                 client.getPitch(),
@@ -77,6 +83,12 @@ class CorrectlyMoveHandler
                     break;
                 case "move_entity":
                     runtime_id = packet.params.runtime_entity_id;
+
+                    let pEntity = client.getWorld().getPlayersEntities().get(runtime_id);
+                    if (pEntity instanceof PlayerEntity) {
+                        pEntity.setPosition(fromObject(packet.params.position));
+                    }
+
                     client.getWorld().getEntityLocations().set(runtime_id, fromObject(packet.params.position));
                     client.getWorld().getEntityRotations().set(runtime_id, new Vector2(packet.params.rotation.x, packet.params.rotation.y));
                     break;

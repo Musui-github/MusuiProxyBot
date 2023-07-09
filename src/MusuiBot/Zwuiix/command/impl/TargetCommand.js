@@ -1,5 +1,6 @@
 const Command = require("../Command");
-const StringArgument = require("../args/StringArgument");
+const TargetArgument = require("../args/TargetArgument");
+const PlayerEntity = require("../../entity/PlayerEntity");
 
 class TargetCommand extends Command
 {
@@ -10,18 +11,12 @@ class TargetCommand extends Command
 
     prepare()
     {
-        this.registerArgument(0, new StringArgument("target", false));
+        this.registerArgument(0, new TargetArgument("target", false));
     }
 
     onRun(player, args)
     {
-        if(!args[0])
-        {
-            player.sendMessage("§cPlease enter a player to target !", false);
-            return;
-        }
-
-        let targetName = args[0];
+        let targetName = args.get("target");
 
         if(targetName.toLowerCase() === "off" || targetName.toLowerCase() === "stop" || targetName.toLowerCase() === "none" || targetName.toLowerCase === "null") {
             player.disableTargeting();
@@ -31,6 +26,10 @@ class TargetCommand extends Command
         }
 
         let target = player.getWorld().getPlayerByName(targetName);
+        if(!target instanceof PlayerEntity) {
+            player.sendMessage(`§6» §cThis player is not connected!`, false);
+            return;
+        }
 
         player.sendMessage(`§6» §fYou are now targeting §e${target.getName()} §f!`, false);
         player.enableTargeting();

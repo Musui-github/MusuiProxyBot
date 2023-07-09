@@ -1,4 +1,5 @@
 const {Vector3} = require("./utils/math/Vector3");
+const Location = require("./utils/math/Location");
 const CorrectlyMoveHandler = require("./handler/CorrectlyMoveHandler");
 const StartGameHandler = require("./handler/StartGameHandler");
 const InGamePacketHandler = require("./handler/InGamePacketHandler");
@@ -16,6 +17,7 @@ class Client
     TAG_IN_GAME_HANDLER = "ingamepackethandler"
     TAG_CORRECTLY_MOVE_HANDLER = "correctlymovehandler"
     TAG_COMMAND_HANDLER = "commandhandler"
+    TAG_MAX_REACH = 3;
 
     /*** @type {NetworkSession}*/
     networkSession;
@@ -25,8 +27,8 @@ class Client
 
     handler = new Map();
 
-    currentTarget;
-    canTarget;
+    currentTarget = -1;
+    canTarget = false;
 
     id = 0;
 
@@ -203,6 +205,11 @@ class Client
         this.position = position;
     }
 
+    getLocation()
+    {
+        return new Location(this.getPosition().getX(), this.getPosition().getY(), this.getPosition().getZ(), this.getYaw(), this.getPitch());
+    }
+
     getInputData()
     {
         return this.input_data;
@@ -263,7 +270,7 @@ class Client
         this.gamemode = number;
     }
 
-    attackEntityWithId(runtimeId)
+    attackEntity(entity)
     {
         /*this.getNetworkSession().sendServerBoundDataPacket(new LevelSoundEventPacket(
             'AttackNoDamage',
@@ -279,12 +286,39 @@ class Client
             {network_id: 0},
             this.getPosition().asObject(),
             new Vector3(0,0,0).asObject(),
-            runtimeId
+            entity.getRuntimeId()
         ));
 
         let swingPacket = new AnimatePacket(this.getId(), "swing_arm", 0);
         this.getNetworkSession().sendServerBoundDataPacket(swingPacket);
         this.getNetworkSession().sendClientBoundDataPacket(swingPacket);
+    }
+
+    canReachAttack(entity)
+    {
+        let distance = entity.getPosition().distance(this.getPosition().add(new Vector3(0, 1.62, 0)));
+        if(distance > this.TAG_MAX_REACH) {
+            return false;
+        }
+
+        let directionVector = this.getLocation().getDirectionVector();
+        let response = false;
+        for(let i = 0.0; i <= this.TAG_MAX_REACH; i + 0.1){
+            let pos = entity.getPosition();
+            let x = directionVector.x * i + pos.getX();
+            let y = directionVector.y * i + pos.getY();
+            let z = directionVector.z * i + pos.getZ();
+            if(
+                Math.round(x) === Math.round(pos.x) &&
+                Math.round(y) === Math.round(pos.y) &&
+                Math.round(z) === Math.round(pos.z)
+            ) {
+                response = true;
+                break;
+            }
+        }
+
+        return response;
     }
 
     rightClickWithSlot(slot)
@@ -306,7 +340,7 @@ class Client
 
     sendMessage(message, sendToServer)
     {
-        let pkt = new TextPacket("chat", message, this.getName(), this.getXUID(), "");
+        let pkt = new TextPacket(sendToServer ? "chat" : "raw", message, this.getName(), this.getXUID(), "");
         sendToServer
             ? this.getNetworkSession().sendServerBoundDataPacket(pkt)
             : this.getNetworkSession().sendClientBoundDataPacket(pkt);

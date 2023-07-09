@@ -46,6 +46,11 @@ class PlayerEntity
         return this.position;
     }
 
+    setPosition(position)
+    {
+        this.position = position;
+    }
+
     getRotation()
     {
         return this.rotation;
