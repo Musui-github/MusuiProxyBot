@@ -3,6 +3,7 @@ const Vector2 = require("../utils/math/Vector2");
 const PlayerAuthInputPacket = require('../network/packet/PlayerAuthInputPacket');
 const MovePlayerPacket = require('../network/packet/MovePlayerPacket');
 const PlayerEntity = require("../entity/PlayerEntity");
+const deg2rad = require('deg2rad');
 
 class CorrectlyMoveHandler
 {
@@ -12,49 +13,89 @@ class CorrectlyMoveHandler
         client.getNetworkSession().getClient().on('serverbound', (pk) => {
             switch (pk.name) {
                 case "player_auth_input":
-                    if(client.hasTarget() && client.getCanTarget()) {
+                    if(client.hasTarget()) {
                         if(!client.getWorld().getPlayersEntities().has(client.getCurrentTarget())) {
                             client.setCurrentTarget(-1);
                         } else {
                             let currentTarget = client.getWorld().getPlayersEntities().get(client.getCurrentTarget());
-                            if (!currentTarget instanceof PlayerEntity) return;
+                            if (currentTarget instanceof PlayerEntity) {
 
-                            //client.setPosition(currentTarget.getPosition());
-                            client.getNetworkSession().sendClientBoundDataPacket(new MovePlayerPacket(
-                                Number(client.getId()),
-                                client.getPosition().asObject(),
-                                client.getPitch(),
-                                client.getYaw(),
-                                client.getYaw(),
-                                "normal",
-                                true,
-                                0,
-                                "unknown",
-                                32767
-                            ));
-                            if(client.canReachAttack(currentTarget)) {
-                                client.attackEntity(currentTarget);
+                                let tickDiff = 1;
+
+                                let pos = currentTarget.getPosition();
+                                let newPos = client.getPosition();
+                                let xdiff = pos.x - newPos.x;
+                                let zdiff = pos.z - newPos.z;
+                                let angle = Math.atan2(zdiff, xdiff);
+                                let yaw = ((angle * 180) / 3.1415926535898) - 90;
+                                let ydiff = pos.y - newPos.y;
+                                let v = new Vector2(newPos.x, newPos.z);
+                                let dist = v.distance(new Vector2(pos.x, pos.z));
+                                angle = Math.atan2(dist, ydiff);
+                                let pitch = ((angle * 180) / 3.1415926535898) - 90;
+                                client.setYaw(yaw);
+                                client.setPitch(pitch);
+
+                                client.getNetworkSession().sendClientBoundDataPacket(new MovePlayerPacket(
+                                    Number(client.getId()),
+                                    client.getPosition().asObject(),
+                                    client.getPitch(),
+                                    client.getYaw(),
+                                    client.getYaw(),
+                                    "normal",
+                                    true,
+                                    0,
+                                    "unknown",
+                                    32767
+                                ));
+                                if(client.canReachAttack(currentTarget)) {
+                                    client.attackEntity(currentTarget);
+                                }
+                                
+                                let x = currentTarget.getPosition().getX() - client.getPosition().getX();
+                                let y = currentTarget.getPosition().getY() - client.getPosition().getY();
+                                let z = currentTarget.getPosition().getZ() - client.getPosition().getZ();
+                                
+                                let diff = Math.abs(x) + Math.abs(z);
+
+                                if (x ** 2 + z ** 2 < 0.7) {
+                                    client.velocity.x = 0;
+                                    client.velocity.z = 0;
+                                } else if (diff > 0) {
+                                    client.velocity.x = 2.98 * 0.15 * (x / diff);
+                                    client.velocity.z = 2.98 * 0.15 * (z / diff);
+                                    yaw = -Math.atan2(x / diff, z / diff) * 180 / Math.PI;
+                                }
+                                pitch = y === 0 ? 0 : deg2rad(-Math.atan2(y, Math.sqrt(x ** 2 + z ** 2)));
+
+                                let dx = client.velocity.x * tickDiff;
+                                let dy = client.velocity.y * tickDiff;
+                                let dz = client.velocity.z * tickDiff;
+
+                                client.setPosition(client.getPosition().add(new Vector3(dx, currentTarget.getPosition().getY() - dy , dz)));
+
+                                let packet = new PlayerAuthInputPacket(
+                                    client.getPitch(),
+                                    client.getYaw(),
+                                    client.getPosition().asObject(),
+                                    {x: 0, z: 0},
+                                    client.getYaw(),
+                                    client.getInputData(),
+                                    'mouse',
+                                    'normal',
+                                    'touch',
+                                    new Vector3(0, 0, 0).asObject(),
+                                    client.getNextTick(),
+                                    new Vector3(0, 0, 0).asObject(),
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    {x: 0, z: 0}
+                                );
+                                pk.params = packet.getValue();
                             }
 
-                            let packet = new PlayerAuthInputPacket(
-                                client.getPitch(),
-                                client.getYaw(),
-                                client.getPosition().asObject(),
-                                {x: 0, z: 0},
-                                client.getYaw(),
-                                client.getInputData(),
-                                'mouse',
-                                'normal',
-                                'touch',
-                                new Vector3(0, 0, 0).asObject(),
-                                client.getNextTick(),
-                                new Vector3(0, 0, 0).asObject(),
-                                undefined,
-                                undefined,
-                                undefined,
-                                {x: 0, z: 0}
-                            );
-                            pk.params = packet.getValue();
+                            //client.setPosition(currentcurrentTarget.getPosition());
                         }
                     }
                     break;

@@ -17,7 +17,7 @@ class Client
     TAG_IN_GAME_HANDLER = "ingamepackethandler"
     TAG_CORRECTLY_MOVE_HANDLER = "correctlymovehandler"
     TAG_COMMAND_HANDLER = "commandhandler"
-    TAG_MAX_REACH = 3;
+    TAG_MAX_REACH = 3.25;
 
     /*** @type {NetworkSession}*/
     networkSession;
@@ -296,22 +296,23 @@ class Client
 
     canReachAttack(entity)
     {
-        let distance = entity.getPosition().distance(this.getPosition().add(new Vector3(0, 1.62, 0)));
+        let distance = entity.getPosition().distance(this.getPosition());
         if(distance > this.TAG_MAX_REACH) {
             return false;
         }
 
         let directionVector = this.getLocation().getDirectionVector();
         let response = false;
-        for(let i = 0.0; i <= this.TAG_MAX_REACH; i + 0.1){
+        for(let i = 0.0; i <= this.TAG_MAX_REACH; i = i + 0.1){
             let pos = entity.getPosition();
-            let x = directionVector.x * i + pos.getX();
-            let y = directionVector.y * i + pos.getY();
-            let z = directionVector.z * i + pos.getZ();
+            let x = directionVector.getX() * i + this.getPosition().getX();
+            let y = directionVector.getY() * i + this.getPosition().getY();
+            let z = directionVector.getZ() * i + this.getPosition().getZ();
             if(
-                Math.round(x) === Math.round(pos.x) &&
-                Math.round(y) === Math.round(pos.y) &&
-                Math.round(z) === Math.round(pos.z)
+                (Math.abs(Math.round(x) - Math.round(pos.getX())) <= this.TAG_MAX_REACH) &&
+                (Math.abs(Math.round(y) - Math.round(pos.getY())) <= this.TAG_MAX_REACH) &&
+                (Math.abs(Math.round(z) - Math.round(pos.getZ())) <= this.TAG_MAX_REACH)
+
             ) {
                 response = true;
                 break;

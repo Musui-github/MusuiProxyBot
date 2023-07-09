@@ -66,9 +66,9 @@ class Vector3
         return new Vector3(this.getX() * number, this.getY() * number, this.getZ() * number);
     }
 
-    divide(number)
+    divide(integer)
     {
-        return new Vector3(this.getX() / number, this.getY() / number, this.getZ() / number);
+        return new Vector3(this.getX() / integer, this.getY() / integer, this.getZ() / integer);
     }
 
     ceil()
@@ -118,14 +118,14 @@ class Vector3
 
     lengthSquared()
     {
-        return (this.getX() ** 2) + (this.getY() ** 2) + (this.getZ() ** 2);
+        return (this.getX() * this.getX()) + (this.getY() * this.getY()) + (this.getZ() * this.getZ());
     }
 
     normalize(vector)
     {
         let len = this.lengthSquared(vector);
         if(len > 0){
-            return this.divide(vector, Math.sqrt(len));
+            return vector.divide(Math.sqrt(len));
         }
 
         return new Vector3(0, 0, 0);
