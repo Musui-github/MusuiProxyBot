@@ -24,6 +24,7 @@ class CorrectlyMoveHandler
                    undefined,
                    undefined
                );
+               client.getNetworkSession().sendDataPacket(pk);
            }, 50);
        });
     }

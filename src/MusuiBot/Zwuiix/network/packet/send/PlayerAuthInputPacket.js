@@ -22,7 +22,7 @@ class PlayerAuthInputPacket extends Packet
         this.value = {
             pitch: pitch,
             yaw: yaw,
-            position: position.asObject(),
+            position: position,
             move_vector: move_vector,
             head_yaw: yaw,
             input_data: input_data,
@@ -31,16 +31,11 @@ class PlayerAuthInputPacket extends Packet
             interaction_model: interaction_model,
             gaze_direction: gaze_direction,
             tick: tick,
-            delta: delta.asObject(),
+            delta: delta,
             transaction: transaction,
             item_stack_request: item_stack_request,
             block_action: block_action
         };
-    }
-
-    getValue()
-    {
-        return this.value;
     }
 
     getPitch()

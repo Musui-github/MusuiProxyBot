@@ -10,6 +10,8 @@ class Client {
 
     handler = new Map();
 
+    id;
+
     yaw = 0;
     pitch = 0;
     position = new Vector3(0, 0, 0);
@@ -61,6 +63,8 @@ class Client {
         this.loader = loader;
 
         this.getHandler().set("correctlymovehandler", new CorrectlyMoveHandler(this));
+
+        this.id = 0; // SOON
     }
 
     getNetworkSession()
@@ -76,6 +80,11 @@ class Client {
     getHandler()
     {
         return this.handler;
+    }
+
+    getId()
+    {
+        return this.id;
     }
 
     getPitch()
@@ -151,6 +160,43 @@ class Client {
     getNextTick()
     {
         return ++this.tick;
+    }
+
+    attackEntityWithId(runtimeId)
+    {
+        this.getNetworkSession().sendDataPacket(new LevelSoundEventPacket(
+            'AttackNoDamage',
+            this.getPosition(),
+            0,
+            false,
+            false
+        ));
+        this.getNetworkSession().sendDataPacket(new InventoryTransactionPacket(
+            'item_use_on_entity',
+            'attack',
+            0,
+            {network_id: 0},
+            this.getPosition().asObject(),
+            new Vector3(0,0,0).asObject(),
+            runtimeId
+        ));
+    }
+
+    rightClickWithSlot(slot)
+    {
+        let pk = new InventoryTransactionPacket(
+            'item_use',
+            'click_air',
+            0,
+            {network_id: 0},
+            this.getPosition().asObject(),
+            new Vector3(0,0,0).asObject(),
+            undefined,
+            new Vector3(0, 0, 0).asObject(),
+            0,
+            0,
+        );
+        this.getNetworkSession().sendDataPacket(pk);
     }
 }
 module.exports = Client;

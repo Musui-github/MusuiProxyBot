@@ -13,6 +13,11 @@ class Packet
         return this.name;
     }
 
+    getValue()
+    {
+        return this.value;
+    }
+
     asObject()
     {
         return this.value;
