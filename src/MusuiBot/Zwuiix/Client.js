@@ -1,7 +1,22 @@
-const Vector3 = require("./utils/math/Vector3");
+const {Vector3} = require("./utils/math/Vector3");
 const CorrectlyMoveHandler = require("./handler/CorrectlyMoveHandler");
+const StartGameHandler = require("./handler/StartGameHandler");
+const InGamePacketHandler = require("./handler/InGamePacketHandler");
+const World = require("./world/World");
+const LevelSoundEventPacket = require("./network/packet/LevelSoundEventPacket");
+const InventoryTransactionPacket = require("./network/packet/InventoryTransactionPacket");
+const AnimatePacket = require("./network/packet/AnimatePacket");
+const TextPacket = require("./network/packet/TextPacket");
+const CommandHandler = require("./handler/CommandHandler");
+const TargetCommand = require("./command/impl/TargetCommand");
 
-class Client {
+class Client
+{
+    TAG_START_GAME_HANDLER = "startgamehandler"
+    TAG_IN_GAME_HANDLER = "ingamepackethandler"
+    TAG_CORRECTLY_MOVE_HANDLER = "correctlymovehandler"
+    TAG_COMMAND_HANDLER = "commandhandler"
+
     /*** @type {NetworkSession}*/
     networkSession;
 
@@ -10,14 +25,17 @@ class Client {
 
     handler = new Map();
 
-    id;
+    currentTarget;
+    canTarget;
+
+    id = 0;
 
     yaw = 0;
     pitch = 0;
     position = new Vector3(0, 0, 0);
     tick = -0;
-    input_data = {
-        _value: 0,
+    input_data= {
+        _value: 0n,
         ascend: false,
         descend: false,
         north_jump: false,
@@ -54,17 +72,25 @@ class Client {
         stop_gliding: false,
         item_interact: false,
         block_action: false,
-        item_stack_request: false
+        item_stack_request: false,
+        handled_teleport: false,
+        emoting: false
     };
 
+    velocity = new Vector3(0, 0, 0);
+    world = new World(this);
+    gamemode = 0;
     constructor(NetworkSession, loader)
     {
         this.networkSession = NetworkSession;
         this.loader = loader;
 
-        this.getHandler().set("correctlymovehandler", new CorrectlyMoveHandler(this));
+        this.getHandler().set(this.TAG_START_GAME_HANDLER, new StartGameHandler(this));
+        this.getHandler().set(this.TAG_IN_GAME_HANDLER, new InGamePacketHandler(this));
+        this.getHandler().set(this.TAG_CORRECTLY_MOVE_HANDLER, new CorrectlyMoveHandler(this));
+        this.getHandler().set(this.TAG_COMMAND_HANDLER, new CommandHandler(this));
 
-        this.id = 0; // SOON
+        this.getCommandHandler().register(new TargetCommand());
     }
 
     getNetworkSession()
@@ -82,9 +108,69 @@ class Client {
         return this.handler;
     }
 
+    getCommandHandler()
+    {
+        return this.getHandler().get(this.TAG_COMMAND_HANDLER);
+    }
+
+    getName()
+    {
+        return this.getNetworkSession().getExtraData().displayName;
+    }
+
+    getUUID()
+    {
+        return this.getNetworkSession().getExtraData().identity;
+    }
+
+    getXUID()
+    {
+        return this.getNetworkSession().getExtraData().XUID;
+    }
+
+    getTitleId()
+    {
+        return this.getNetworkSession().getExtraData().titleId;
+    }
+
+    getProtocol()
+    {
+        return this.getNetworkSession().getClient().version;
+    }
+
     getId()
     {
         return this.id;
+    }
+
+    getCurrentTarget()
+    {
+        return this.currentTarget;
+    }
+
+    setCurrentTarget(target)
+    {
+        this.currentTarget = target;
+    }
+
+    hasTarget()
+    {
+        return this.currentTarget != -1;
+    }
+
+    getCanTarget()
+    {
+        return this.canTarget;
+    }
+
+    enableTargeting()
+    {
+        this.canTarget = true;
+    }
+
+    disableTargeting()
+    {
+        this.canTarget = false;
     }
 
     getPitch()
@@ -162,16 +248,31 @@ class Client {
         return ++this.tick;
     }
 
+    getWorld()
+    {
+        return this.world;
+    }
+
+    getGamemode()
+    {
+        return this.gamemode;
+    }
+
+    setGamemode(number)
+    {
+        this.gamemode = number;
+    }
+
     attackEntityWithId(runtimeId)
     {
-        this.getNetworkSession().sendDataPacket(new LevelSoundEventPacket(
+        /*this.getNetworkSession().sendServerBoundDataPacket(new LevelSoundEventPacket(
             'AttackNoDamage',
             this.getPosition(),
             0,
             false,
             false
-        ));
-        this.getNetworkSession().sendDataPacket(new InventoryTransactionPacket(
+        ));*/
+        this.getNetworkSession().sendServerBoundDataPacket(new InventoryTransactionPacket(
             'item_use_on_entity',
             'attack',
             0,
@@ -180,6 +281,10 @@ class Client {
             new Vector3(0,0,0).asObject(),
             runtimeId
         ));
+
+        let swingPacket = new AnimatePacket(this.getId(), "swing_arm", 0);
+        this.getNetworkSession().sendServerBoundDataPacket(swingPacket);
+        this.getNetworkSession().sendClientBoundDataPacket(swingPacket);
     }
 
     rightClickWithSlot(slot)
@@ -196,7 +301,21 @@ class Client {
             0,
             0,
         );
-        this.getNetworkSession().sendDataPacket(pk);
+        this.getNetworkSession().sendServerBoundDataPacket(pk);
+    }
+
+    sendMessage(message, sendToServer)
+    {
+        let pkt = new TextPacket("chat", message, this.getName(), this.getXUID(), "");
+        sendToServer
+            ? this.getNetworkSession().sendServerBoundDataPacket(pkt)
+            : this.getNetworkSession().sendClientBoundDataPacket(pkt);
+    }
+
+    sendClientTipMessage(message)
+    {
+        let pkt = new TextPacket("tip", message, this.getName(), this.getXUID(), "");
+        this.getNetworkSession().sendClientBoundDataPacket(pkt);
     }
 }
 module.exports = Client;

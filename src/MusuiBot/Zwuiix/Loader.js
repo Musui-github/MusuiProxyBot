@@ -1,11 +1,20 @@
 const Config = require('./utils/Config');
 const Path = require("path");
-const {Client} = require("./Client");
-const {NetworkSession} = require("./network/NetworkSession");
+const Client = require("./Client");
+const { Relay } = require('bedrock-protocol');
+const NetworkSession = require("./network/NetworkSession");
 const bedrock = require('bedrock-protocol');
-const musui = new Config(Path.join(process.execPath + "musui.json"));
+const musui = new Config(Path.join(process.cwd() + "/musui.json"));
+if(musui.config === {}) {
+    musui.setAll({
+        username: "Unknown",
+        host: "Unknown",
+        port: 19132,
+        connectTimeout: 1500
+    });
+    musui.save();
+}
 
-new Loader(musui.get('username', 'Unknown'), musui.get('host', 'unknown'), musui.get('port', 19132), musui.get('connectTimeout', 1500), musui);
 class Loader
 {
     /*** @type {Config} config*/
@@ -31,7 +40,7 @@ class Loader
             throw new Error("There was an error sending the port..");
         }
         if(typeof connectTimeout !== "number") {
-            throw new Error("There was an error sending the connectTimeout..");
+            throw new Error("There was an error sending the connectTimeout.");
         }
         if(!config instanceof Config) {
             throw new Error("There was an error loading the config.");
@@ -39,15 +48,25 @@ class Loader
 
         this.config = config;
 
-        let client = bedrock.createClient({
-            host: host,
-            port: port,
-            skipPing: true,
-            offline: false,
-            username: username,
-            connectTimeout: connectTimeout,
-        });
-        new Client(new NetworkSession(client), this);
+        const relay = new Relay({
+            host: '0.0.0.0',
+            port: 19132,
+            offline: true,
+            destination: {
+                host: host,
+                port: port,
+                offline: false
+            }
+        })
+        relay.listen()
+        relay.on('connect', player => {
+            console.log('New connection', player.connection.address)
+
+            player.on('login', () => {
+                console.log("Logged in as " + player.profile.name);
+                new Client(new NetworkSession(player), this);
+            })
+        })
     }
 
     getConfig()
@@ -55,3 +74,5 @@ class Loader
         return this.config;
     }
 }
+
+new Loader(musui.get('username', 'Unknown'), musui.get('host', 'unknown'), musui.get('port', 19132), musui.get('connectTimeout', 1500), musui);

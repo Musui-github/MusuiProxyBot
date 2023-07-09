@@ -1,4 +1,4 @@
-export class NetworkSession
+class NetworkSession
 {
     bedrockClient;
 
@@ -8,7 +8,6 @@ export class NetworkSession
     }
 
     /**
-     *
      * @returns {bedrock.Client}
      */
     getClient()
@@ -16,8 +15,12 @@ export class NetworkSession
         return this.bedrockClient;
     }
 
+    getExtraData()
+    {
+        return this.getClient().userData;
+    }
+
     /**
-     *
      * @returns {string}
      */
     getHost()
@@ -26,7 +29,6 @@ export class NetworkSession
     }
 
     /**
-     *
      * @returns {number}
      */
     getPort()
@@ -35,11 +37,19 @@ export class NetworkSession
     }
 
     /**
-     *
      * @param packet {Packet}
      */
-    sendDataPacket(packet)
+    sendServerBoundDataPacket(packet)
+    {
+        this.getClient().upstream.queue(packet.getName(), packet.asObject());
+    }
+
+    /**
+     * @param packet {Packet}
+     */
+    sendClientBoundDataPacket(packet)
     {
         this.getClient().queue(packet.getName(), packet.asObject());
     }
 }
+module.exports = NetworkSession;

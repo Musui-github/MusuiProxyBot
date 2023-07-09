@@ -93,7 +93,7 @@ class Vector3
 
     asObject()
     {
-        return {x: this.getX(), y: this.getY(), z: this.getZ()};
+        return { x: this.getX(), y: this.getY(), z: this.getZ() };
     }
 
     asFloorObject()
@@ -131,4 +131,12 @@ class Vector3
         return new Vector3(0, 0, 0);
     }
 }
-module.exports = Vector3;
+module.exports = {
+    Vector3,
+    fromObject(object) {
+        if(isNaN(object.x) || isNaN(object.y) || isNaN(object.z)) {
+            throw Error("A Vector3 cannot contain invalid number(s) as parameters");
+        }
+        return new Vector3(object.x, object.y, object.z);
+    }
+};

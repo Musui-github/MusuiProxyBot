@@ -1,4 +1,4 @@
-const Vector3 = require("./Vector3");
+const {Vector3} = require("./Vector3");
 const deg2rad = require('deg2rad');
 
 class Location extends Vector3

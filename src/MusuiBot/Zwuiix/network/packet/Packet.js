@@ -23,3 +23,4 @@ class Packet
         return this.value;
     }
 }
+module.exports = Packet;
