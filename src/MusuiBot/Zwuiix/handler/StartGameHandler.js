@@ -11,7 +11,6 @@ class StartGameHandler
                     let position = packet.params.spawn_position;
                     client.id = packet.params.runtime_entity_id;
                     client.setPosition(new Vector3(position.x, position.y, position.z));
-                    client.enableTargeting();
                     break;
             }
         });
