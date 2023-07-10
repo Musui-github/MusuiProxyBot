@@ -72,7 +72,7 @@ class CorrectlyMoveHandler
                                 let dy = client.velocity.y * tickDiff;
                                 let dz = client.velocity.z * tickDiff;
 
-                                client.setPosition(client.getPosition().add(new Vector3(dx, currentTarget.getPosition().getY() - dy , dz)));
+                                client.setPosition(client.getPosition().add(new Vector3(dx, dy , dz)));
 
                                 let packet = new PlayerAuthInputPacket(
                                     client.getPitch(),
