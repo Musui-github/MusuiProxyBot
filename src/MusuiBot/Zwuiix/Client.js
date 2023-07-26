@@ -17,7 +17,7 @@ class Client
     TAG_IN_GAME_HANDLER = "ingamepackethandler"
     TAG_CORRECTLY_MOVE_HANDLER = "correctlymovehandler"
     TAG_COMMAND_HANDLER = "commandhandler"
-    TAG_MAX_REACH = 3.25;
+    TAG_MAX_REACH = /*3.25*/ 5;
 
     /*** @type {NetworkSession}*/
     networkSession;

@@ -44,7 +44,7 @@ class InGamePacketHandler
                     if(client.getWorld().getPlayersEntities().has(entityId)) client.getWorld().getPlayersEntities().delete(entityId);
                     break;
                 case "available_commands":
-                    let commands = client.getCommandHandler().getAll();
+                    /*let commands = client.getCommandHandler().getAll();
                     packet.params.values_len += commands.size;
 
                     commands.forEach((command) => {
@@ -57,7 +57,7 @@ class InGamePacketHandler
                             alias: -1,
                             overloads: command.getOverload(),
                         });
-                    });
+                    });*/
                     break;
             }
         });
